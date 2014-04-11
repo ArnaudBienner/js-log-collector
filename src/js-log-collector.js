@@ -11,13 +11,13 @@
     "use strict";
 
   // Some default values:
-  // How many log we want to keep
-  var DEFAULT_NB_LOG_TO_KEEP = 10;
+  var DEFAULT_TARGET_URL = "http://localhost:10000/";
   // When LEVEL_SEND is reach, we send logs
   var DEFAULT_LEVEL_SEND = Logger.ERROR;
   // Below this level, we don't keep logs
   var DEFAULT_LEVEL_RETAIN = Logger.DEBUG;
-  var DEFAULT_TARGET_URL = "http://localhost:10000/";
+  // How many log we want to keep
+  var DEFAULT_NB_LOG_TO_KEEP = 100;
 
   var defineMode = function (value, name) {
     return { value: value, name: name };
@@ -48,17 +48,17 @@
   
   Logger.useLogReport = function(
     target_url,
-    mode,
-    level_retain,
     level_send,
-    nb_log_to_keep
+    level_retain,
+    nb_log_to_keep,
+    mode
     ) {
 
     Logger.target_url = target_url || DEFAULT_TARGET_URL;
-    Logger.mode = mode || DEFAULT_MODE;
     Logger.level_send = level_send || DEFAULT_LEVEL_SEND;
     Logger.level_retain = level_retain || DEFAULT_LEVEL_RETAIN;
     Logger.nb_log_to_keep = nb_log_to_keep || DEFAULT_NB_LOG_TO_KEEP;
+    Logger.mode = mode || DEFAULT_MODE;
 
     Logger.setLevel(Logger.DEBUG);
 

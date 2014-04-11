@@ -8,7 +8,7 @@ test("Logger collector", function() {
   this.logger = window.Logger;
 
   // Keep no more than 3 logs (with level >= info) and send them (+ clean buffer) on Logger.ERROR
-  this.logger.useLogReport("http://localhost:10000", Logger.PRD_MODE, Logger.INFO, Logger.ERROR, 3);
+  this.logger.useLogReport("http://localhost:10000", Logger.ERROR, Logger.INFO, 3, Logger.PRD_MODE);
 
   this.logger.warn("log message");
   strictEqual(Logger.logBuffer.length, 1, "We should have one message in our buffer");
