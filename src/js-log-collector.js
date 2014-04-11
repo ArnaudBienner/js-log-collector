@@ -27,11 +27,9 @@
   var DEFAULT_MODE = Logger.DEV_MODE;
 
   Logger.saveLogs = function(messages) {
-    for (var i = 0; i < messages.length; i++) {
-      if (this.logBuffer.length > this.nb_log_to_keep) {
-        this.logBuffer.shift()
-      }
-      this.logBuffer.push(messages[i]);
+    this.logBuffer.push(messages);
+    if (this.logBuffer.length > this.nb_log_to_keep) {
+      this.logBuffer.shift()
     }
   }
 
@@ -42,7 +40,6 @@
   Logger.sendLogs = function() {
     var req = new XMLHttpRequest();
     req.open("POST", this.target_url, true);
-    //var data = this.logBuffer.toString(); // JSON.stringify(logBuffer);
     var data = JSON.stringify(this.logBuffer);
     req.send(data);
     // Empty log array
@@ -59,26 +56,25 @@
 
     Logger.target_url = target_url || DEFAULT_TARGET_URL;
     Logger.mode = mode || DEFAULT_MODE;
-    //console.log(mode);
     Logger.level_send = level_send || DEFAULT_LEVEL_SEND;
     Logger.level_retain = level_retain || DEFAULT_LEVEL_RETAIN;
     Logger.nb_log_to_keep = nb_log_to_keep || DEFAULT_NB_LOG_TO_KEEP;
 
     Logger.setLevel(Logger.DEBUG);
 
-    // Log we keep in memory for some time
+    // Logs we keep in memory for some time. Acts like a FIFO with nb_log_to_keep elements
     Logger.logBuffer = new Array();
 
     Logger.setHandler(function(messages, context) {
       var console = window.console;
       var hdlr = console.log;
 
-      // Prepend the logger's name to the log message for easy identification.
       if (context.name) {
-        messages[0] = "[" + context.name + "] " + messages[0];
+        messages.logger_name = context.name;
       }
       var timestamp = Date.now()
-      messages[0] = timestamp + " " + context.level.name + ": " + messages[0];
+      messages.timestamp = timestamp;
+      messages.level = context.level.name;
 
       if (Logger.mode == Logger.DEV_MODE) {
         // Delegate through to custom warn/error loggers if present on the console.
@@ -89,10 +85,12 @@
         } else if (context.level === Logger.INFO && console.info) {
           hdlr = console.info;
         }
+        hdlr.apply(console, messages);
       }
 
-      hdlr.apply(console, messages);
-      Logger.saveLogs(messages);
+      if (context.level.value >= Logger.level_retain.value) {
+        Logger.saveLogs(messages);
+      }
 
       if (context.level.value >= Logger.level_send.value) {
         Logger.sendLogs();
